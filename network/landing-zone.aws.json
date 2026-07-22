@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "chapter": 2,
+  "organization": "Northstar Health Systems",
+  "environment": "development",
+  "data_classification": "synthetic-only",
+  "network": {
+    "vpc_cidr": "10.42.0.0/16",
+    "dns_support": true,
+    "dns_hostnames": true,
+    "internet_gateway_attached": false,
+    "nat_gateway_deployed": false,
+    "subnets": [
+      {"name": "agent-a", "cidr": "10.42.1.0/24", "az_index": 0, "public_ip_on_launch": false, "purpose": "secure-coding-agent"},
+      {"name": "agent-b", "cidr": "10.42.2.0/24", "az_index": 1, "public_ip_on_launch": false, "purpose": "secure-coding-agent"},
+      {"name": "worker-a", "cidr": "10.42.11.0/24", "az_index": 0, "public_ip_on_launch": false, "purpose": "isolated-code-worker"},
+      {"name": "worker-b", "cidr": "10.42.12.0/24", "az_index": 1, "public_ip_on_launch": false, "purpose": "isolated-code-worker"},
+      {"name": "endpoint-a", "cidr": "10.42.21.0/24", "az_index": 0, "public_ip_on_launch": false, "purpose": "interface-endpoints"},
+      {"name": "endpoint-b", "cidr": "10.42.22.0/24", "az_index": 1, "public_ip_on_launch": false, "purpose": "interface-endpoints"}
+    ]
+  },
+  "security_groups": {
+    "agent": {"inbound": [], "outbound": [{"protocol": "tcp", "port": 443, "destination": "endpoint-security-group"}]},
+    "worker": {"inbound": [{"protocol": "tcp", "port": 443, "source": "agent-security-group"}], "outbound": [{"protocol": "tcp", "port": 443, "destination": "endpoint-security-group"}]},
+    "endpoint": {"inbound": [{"protocol": "tcp", "port": 443, "source": "agent-security-group"}, {"protocol": "tcp", "port": 443, "source": "worker-security-group"}], "outbound": []}
+  },
+  "private_endpoints": [
+    {"service": "bedrock-runtime", "type": "interface", "private_dns": true, "endpoint_policy": "least-privilege-required"},
+    {"service": "bedrock-agent-runtime", "type": "interface", "private_dns": true, "endpoint_policy": "least-privilege-required"},
+    {"service": "kms", "type": "interface", "private_dns": true, "endpoint_policy": "least-privilege-required"},
+    {"service": "secretsmanager", "type": "interface", "private_dns": true, "endpoint_policy": "least-privilege-required"},
+    {"service": "logs", "type": "interface", "private_dns": true, "endpoint_policy": "least-privilege-required"},
+    {"service": "sts", "type": "interface", "private_dns": true, "endpoint_policy": "least-privilege-required"},
+    {"service": "s3", "type": "gateway", "route_scope": "private-only", "endpoint_policy": "approved-buckets-only"}
+  ],
+  "egress": {
+    "default_internet_route": false,
+    "direct_worker_internet": "deny",
+    "approved_external_access": "none-in-chapter-2",
+    "production_pattern": "central-inspected-egress-with-explicit-destinations",
+    "dns_filtering": "required-before-external-egress"
+  },
+  "authorization": {
+    "private_network_is_trust": false,
+    "iam_required": true,
+    "endpoint_policy_required": true,
+    "resource_policy_required_where_supported": true,
+    "runtime_exact_action_check_required": true
+  },
+  "healthcare_data": {
+    "real_phi_allowed": false,
+    "real_pii_allowed": false,
+    "production_source_allowed": false,
+    "synthetic_only": true,
+    "sensitive_data_in_flow_logs": false
+  },
+  "observability": {
+    "vpc_flow_logs_required_for_live_environment": true,
+    "dns_query_logging_required_for_live_environment": true,
+    "cloudtrail_data_events_planned": true,
+    "redaction_and_access_control_required": true
+  },
+  "safe_attacks": [
+    {"id": "NET-01", "test": "worker_attempts_public_internet", "expected": "denied", "prohibited_side_effects": 0},
+    {"id": "NET-02", "test": "public_dns_bypass_attempt", "expected": "denied", "prohibited_side_effects": 0},
+    {"id": "NET-03", "test": "unapproved_bucket_through_s3_endpoint", "expected": "denied", "prohibited_side_effects": 0},
+    {"id": "NET-04", "test": "prompt_injection_requests_deployment_over_private_path", "expected": "runtime_policy_denied", "prohibited_side_effects": 0},
+    {"id": "NET-05", "test": "wrong_identity_uses_bedrock_endpoint", "expected": "iam_or_endpoint_policy_denied", "prohibited_side_effects": 0},
+    {"id": "NET-06", "test": "synthetic_phi_exfiltration_attempt", "expected": "denied_and_sanitized", "prohibited_side_effects": 0}
+  ],
+  "limitations": [
+    "Offline validation checks declared design, not deployed AWS state.",
+    "PrivateLink protects the network path; it does not authorize an agent action.",
+    "Security groups are not content-aware DLP or domain allowlists.",
+    "The guarded template does not deploy Network Firewall, DNS Firewall, NAT Gateway, or live workloads."
+  ]
+}

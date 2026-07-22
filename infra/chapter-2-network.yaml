@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 2 private-network reference. Defaults to creating zero resources.
+
+Parameters:
+  DeployChapter2Network:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues: [development, test]
+  Owner:
+    Type: String
+    Default: REPLACE-WITH-TEAM-OWNER
+    AllowedPattern: '^(?!REPLACE-WITH-TEAM-OWNER$).+'
+    ConstraintDescription: Replace the owner placeholder before deployment.
+
+Conditions:
+  Deploy: !Equals [!Ref DeployChapter2Network, 'true']
+
+Resources:
+  LabVpc:
+    Type: AWS::EC2::VPC
+    Condition: Deploy
+    Properties:
+      CidrBlock: 10.42.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - {Key: Name, Value: northstar-secure-coding-lab}
+        - {Key: Environment, Value: !Ref Environment}
+        - {Key: Owner, Value: !Ref Owner}
+        - {Key: DataClassification, Value: synthetic-only}
+  AgentSubnetA:
+    Type: AWS::EC2::Subnet
+    Condition: Deploy
+    Properties:
+      VpcId: !Ref LabVpc
+      CidrBlock: 10.42.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+  WorkerSubnetA:
+    Type: AWS::EC2::Subnet
+    Condition: Deploy
+    Properties:
+      VpcId: !Ref LabVpc
+      CidrBlock: 10.42.11.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+  EndpointSubnetA:
+    Type: AWS::EC2::Subnet
+    Condition: Deploy
+    Properties:
+      VpcId: !Ref LabVpc
+      CidrBlock: 10.42.21.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+  AgentSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: Deploy
+    Properties:
+      GroupDescription: No inbound traffic; HTTPS egress is limited to the endpoint subnet.
+      VpcId: !Ref LabVpc
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.42.21.0/24
+          Description: HTTPS to the Chapter 2 endpoint subnet only
+  WorkerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: Deploy
+    Properties:
+      GroupDescription: Isolated worker with HTTPS egress limited to the endpoint subnet.
+      VpcId: !Ref LabVpc
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.42.21.0/24
+          Description: HTTPS to the Chapter 2 endpoint subnet only
+  EndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: Deploy
+    Properties:
+      GroupDescription: HTTPS from approved agent and worker security groups only.
+      VpcId: !Ref LabVpc
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, SourceSecurityGroupId: !Ref AgentSecurityGroup}
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, SourceSecurityGroupId: !Ref WorkerSecurityGroup}
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.42.0.0/16
+          Description: Restrict endpoint ENI egress to the lab VPC
+  BedrockRuntimeEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Condition: Deploy
+    Properties:
+      VpcId: !Ref LabVpc
+      VpcEndpointType: Interface
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.bedrock-runtime
+      PrivateDnsEnabled: true
+      SubnetIds: [!Ref EndpointSubnetA]
+      SecurityGroupIds: [!Ref EndpointSecurityGroup]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Deny
+            Principal: '*'
+            Action: '*'
+            Resource: '*'
+
+Outputs:
+  DeploymentGuard:
+    Description: False means this stack creates no resources.
+    Value: !Ref DeployChapter2Network
