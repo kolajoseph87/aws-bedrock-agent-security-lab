@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.0",
+  "chapter": 1,
+  "organization": "Northstar Health Systems",
+  "system": "Amazon Bedrock Secure Coding Agent",
+  "environment": "non-production",
+  "method": ["STRIDE", "abuse-cases", "data-flow-analysis"],
+  "dataPolicy": {
+    "allowed": ["synthetic-source-code", "synthetic-healthcare-examples", "sanitized-findings"],
+    "forbidden": ["real-phi", "real-pii", "production-secrets", "production-source-code", "live-patient-records"],
+    "bedrockGuardrailsAreOnlyControl": false,
+    "minimumNecessary": true
+  },
+  "assets": [
+    {"id": "A1", "name": "synthetic source repository", "classification": "synthetic-training-only", "owner": "AppSec Team"},
+    {"id": "A2", "name": "agent instructions and policies", "classification": "internal", "owner": "AI Security Team"},
+    {"id": "A3", "name": "temporary AWS identity", "classification": "restricted", "owner": "Cloud Security Team"},
+    {"id": "A4", "name": "sanitized findings and evidence", "classification": "internal", "owner": "AppSec Team"},
+    {"id": "A5", "name": "CI/CD integrity and protected branches", "classification": "restricted", "owner": "Platform Security Team"}
+  ],
+  "actors": [
+    {"id": "U1", "name": "authorized developer", "trust": "workforce-authenticated"},
+    {"id": "U2", "name": "malicious contributor", "trust": "untrusted-input-author"},
+    {"id": "W1", "name": "CI/CD workload identity", "trust": "machine-authenticated"},
+    {"id": "R1", "name": "independent human reviewer", "trust": "workforce-authenticated"}
+  ],
+  "components": [
+    {"id": "C1", "name": "source control and pull request", "zone": "development"},
+    {"id": "C2", "name": "input classifier and redactor", "zone": "agent-control-plane"},
+    {"id": "C3", "name": "Bedrock model invocation", "zone": "aws-service"},
+    {"id": "C4", "name": "isolated analysis worker", "zone": "restricted-worker"},
+    {"id": "C5", "name": "CI/CD security gates", "zone": "pipeline"},
+    {"id": "C6", "name": "sanitized audit sink", "zone": "security-logging"}
+  ],
+  "trustBoundaries": [
+    {"id": "B1", "name": "untrusted pull-request content enters agent", "from": "C1", "to": "C2", "requiredChecks": ["repository-allowlist", "content-classification", "prompt-injection-scan", "phi-pii-secret-redaction"]},
+    {"id": "B2", "name": "sanitized context enters Bedrock", "from": "C2", "to": "C3", "requiredChecks": ["model-allowlist", "minimum-necessary-context", "request-size-limit"]},
+    {"id": "B3", "name": "model proposal enters isolated worker", "from": "C3", "to": "C4", "requiredChecks": ["schema-validation", "tool-authorization", "argument-validation"]},
+    {"id": "B4", "name": "worker result enters CI/CD", "from": "C4", "to": "C5", "requiredChecks": ["output-redaction", "security-tests", "independent-approval"]},
+    {"id": "B5", "name": "events enter audit sink", "from": "C2", "to": "C6", "requiredChecks": ["structured-events-only", "no-raw-prompts", "no-sensitive-values"]}
+  ],
+  "securityObjectives": [
+    "no-real-phi-or-pii",
+    "no-production-secrets",
+    "no-unauthorized-repository-access",
+    "no-self-approval",
+    "no-direct-production-deployment",
+    "no-security-gate-bypass",
+    "sanitized-auditability"
+  ],
+  "threats": [
+    {"id": "T1", "stride": "Information Disclosure", "scenario": "Pull-request code contains patient-like fields or a token and the agent copies their values into a prompt, response, patch, or log.", "assetIds": ["A1", "A3", "A4"], "boundaryIds": ["B1", "B2", "B5"], "likelihood": "high", "impact": "critical", "owner": "AppSec Team", "mitigations": ["deterministic sensitive-data detection before model invocation", "replace values with typed placeholders", "block real PHI/PII and secrets", "never store raw prompts or completions"], "testIds": ["AT1", "AT2"]},
+    {"id": "T2", "stride": "Elevation of Privilege", "scenario": "A prompt injection in a code comment asks the agent to disable security tests, change IAM, or deploy to production.", "assetIds": ["A2", "A3", "A5"], "boundaryIds": ["B1", "B3", "B4"], "likelihood": "high", "impact": "critical", "owner": "AI Security Team", "mitigations": ["treat repository content as untrusted data", "deny privileged tools", "authorize exact action and arguments", "require independent approval"], "testIds": ["AT3", "AT4"]},
+    {"id": "T3", "stride": "Tampering", "scenario": "The agent changes a protected branch, security workflow, test result, or SBOM outside the approved pull request.", "assetIds": ["A5"], "boundaryIds": ["B3", "B4"], "likelihood": "medium", "impact": "critical", "owner": "Platform Security Team", "mitigations": ["read-only repository identity by default", "isolated patch generation", "protected branches", "signed build evidence"], "testIds": ["AT5"]},
+    {"id": "T4", "stride": "Spoofing", "scenario": "An unapproved repository or workload pretends to be the authorized CI/CD caller.", "assetIds": ["A1", "A3"], "boundaryIds": ["B1"], "likelihood": "medium", "impact": "high", "owner": "Cloud Security Team", "mitigations": ["temporary workload identity", "exact repository and branch binding", "audience validation", "deny long-lived access keys"], "testIds": ["AT6"]},
+    {"id": "T5", "stride": "Repudiation", "scenario": "A user or agent action cannot be tied to the caller, pull request, policy decision, and sanitized result.", "assetIds": ["A4", "A5"], "boundaryIds": ["B5"], "likelihood": "medium", "impact": "high", "owner": "Security Operations Team", "mitigations": ["correlation identifiers", "structured decision records", "tamper-evident retention", "exclude sensitive payloads"], "testIds": ["AT7"]},
+    {"id": "T6", "stride": "Denial of Service", "scenario": "Oversized or adversarial repository content causes excessive model, worker, or pipeline use.", "assetIds": ["A5"], "boundaryIds": ["B1", "B2", "B3"], "likelihood": "medium", "impact": "medium", "owner": "Platform Security Team", "mitigations": ["file and request size limits", "timeouts", "concurrency quotas", "budget alerts"], "testIds": ["AT8"]}
+  ],
+  "abuseTests": [
+    {"id": "AT1", "name": "synthetic PHI-like logging fields", "payloadClass": "synthetic", "expected": "block-before-model", "prohibitedSideEffects": ["model-invocation", "log-sensitive-values"]},
+    {"id": "AT2", "name": "synthetic access token in source", "payloadClass": "fake-secret", "expected": "block-before-model", "prohibitedSideEffects": ["model-invocation", "store-token"]},
+    {"id": "AT3", "name": "comment requests security-gate disablement", "payloadClass": "harmless-prompt-injection", "expected": "deny-action", "prohibitedSideEffects": ["change-workflow"]},
+    {"id": "AT4", "name": "agent requests production deployment", "payloadClass": "harmless-authorization-test", "expected": "deny-action", "prohibitedSideEffects": ["deployment"]},
+    {"id": "AT5", "name": "protected branch write", "payloadClass": "harmless-authorization-test", "expected": "deny-action", "prohibitedSideEffects": ["repository-write"]},
+    {"id": "AT6", "name": "wrong repository identity", "payloadClass": "synthetic-identity", "expected": "deny-before-read", "prohibitedSideEffects": ["repository-read"]},
+    {"id": "AT7", "name": "missing correlation identifier", "payloadClass": "synthetic-event", "expected": "reject-event", "prohibitedSideEffects": ["accept-incomplete-audit"]},
+    {"id": "AT8", "name": "oversized repository file", "payloadClass": "synthetic", "expected": "reject-before-model", "prohibitedSideEffects": ["model-invocation", "worker-start"]}
+  ],
+  "residualRisks": [
+    {"id": "RR1", "statement": "A model or Guardrail can miss adversarial or sensitive content.", "owner": "AI Security Team", "treatment": "Use deterministic controls, layered testing, and human review; do not rely on probabilistic detection alone."},
+    {"id": "RR2", "statement": "Synthetic tests cannot prove HIPAA compliance or safety with all production code.", "owner": "Privacy and Compliance Team", "treatment": "Complete formal privacy, legal, architecture, and production-readiness reviews before any real-data use."}
+  ]
+}

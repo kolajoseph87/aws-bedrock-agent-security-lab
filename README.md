@@ -5,6 +5,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 ## Current coverage
 
 - Chapter 0 — Safe foundation, workstation preflight, data boundary, cost guardrails, and guarded infrastructure
+- Chapter 1 — Healthcare AppSec threat model, trust boundaries, abuse cases, mitigations, and testable security requirements
 
 ## Scenario
 
@@ -16,8 +17,17 @@ All examples are synthetic. Passing this educational lab does not establish HIPA
 
 ```bash
 cp config/lab.parameters.example.json config/lab.parameters.json
-# Replace the owner and AWS account placeholders, then run:
+# Replace the owner placeholder, then run:
 python3 scripts/preflight.py --config config/lab.parameters.json --offline
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 1
+
+```bash
+python3 scripts/validate_threat_model.py \
+  --manifest threat-model/threat-model.json \
+  --evidence evidence/lab-1-validation.json
 python3 -m unittest discover -s tests -v
 ```
 
