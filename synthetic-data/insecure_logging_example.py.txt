@@ -1,0 +1,9 @@
+# SYNTHETIC TRAINING EXAMPLE — NOT REAL PATIENT DATA
+def record_visit():
+    fake_patient = {
+        "name": "TRAINING-PATIENT-ALPHA",
+        "medical_record_number": "SYNTH-MRN-0001",
+        "diagnosis": "SYNTHETIC-CONDITION"
+    }
+    # Intentionally insecure for a later AppSec exercise:
+    print(fake_patient)

@@ -1,0 +1,39 @@
+{
+  "project": "northstar-secure-coding-agent",
+  "organization": "Northstar Health Systems",
+  "environment": "dev",
+  "awsRegion": "us-east-1",
+  "awsAccountId": "000000000000",
+  "owner": "replace-with-team-owner",
+  "monthlyBudgetUsd": 100,
+  "allowedData": [
+    "synthetic-source-code",
+    "synthetic-security-findings",
+    "synthetic-patient-examples"
+  ],
+  "forbiddenData": [
+    "real-phi",
+    "real-pii",
+    "production-secrets",
+    "production-source-code",
+    "live-patient-records"
+  ],
+  "requiredServices": [
+    "bedrock",
+    "iam",
+    "kms",
+    "secretsmanager",
+    "cloudformation",
+    "cloudtrail",
+    "cloudwatch",
+    "budgets"
+  ],
+  "tags": {
+    "Application": "northstar-secure-coding-agent",
+    "Environment": "dev",
+    "Owner": "replace-with-team-owner",
+    "CostCenter": "ai-security-training",
+    "DataClassification": "synthetic-training-only",
+    "ManagedBy": "cloudformation"
+  }
+}

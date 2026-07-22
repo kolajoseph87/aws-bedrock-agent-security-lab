@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Guarded Northstar Chapter 0 foundation. Defaults to creating no resources.
+  This template does not deploy Bedrock, agents, models, repositories, or patient data.
+
+Parameters:
+  DeployLabFoundation:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Must be explicitly set to true only after account, change-set, cost, and security approval.
+  Owner:
+    Type: String
+    Default: replace-with-team-owner
+    AllowedPattern: '^[A-Za-z0-9._-]{3,64}$'
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 100
+    MinValue: 1
+    MaxValue: 10000
+  BudgetNotificationEmail:
+    Type: String
+    Default: replace-with-approved-distribution@example.invalid
+    NoEcho: true
+
+Conditions:
+  DeployFoundation: !Equals [!Ref DeployLabFoundation, 'true']
+
+Resources:
+  LabBudget:
+    Type: AWS::Budgets::Budget
+    Condition: DeployFoundation
+    Properties:
+      Budget:
+        BudgetName: northstar-secure-coding-agent-dev
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        CostFilters:
+          TagKeyValue:
+            - user:Application$northstar-secure-coding-agent
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref BudgetNotificationEmail
+              SubscriptionType: EMAIL
+
+Outputs:
+  SafetyState:
+    Description: Whether resource creation was explicitly enabled.
+    Value: !If [DeployFoundation, enabled-after-review, disabled-no-resources]

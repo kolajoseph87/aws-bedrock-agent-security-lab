@@ -1,0 +1,6 @@
+config/lab.parameters.json
+evidence/*.json
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
