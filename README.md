@@ -8,6 +8,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 1 — Healthcare AppSec threat model, trust boundaries, abuse cases, mitigations, and testable security requirements
 - Chapter 2 — Private VPC foundation, separated trust zones, Bedrock service endpoints, restricted egress, and network evidence
 - Chapter 3 — Bedrock model allowlisting, inference governance, minimum-necessary context, privacy gates, and change control
+- Chapter 4 — Separate workload identities, temporary credentials, restricted trust, KMS governance, and Secrets Manager controls
 
 ## Scenario
 
@@ -48,6 +49,13 @@ python3 -m unittest discover -s tests -v
 python3 scripts/validate_model_governance.py \
   --manifest model-governance/model-governance.aws.json \
   --evidence evidence/lab-3-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 4
+
+```bash
+python3 scripts/validate_identity_security.py --manifest identity-security/identity-kms-secrets.aws.json --evidence evidence/lab-4-validation.json
 python3 -m unittest discover -s tests -v
 ```
 
