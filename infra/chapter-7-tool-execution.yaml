@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 7 isolated tool-execution reference; disabled by default and incomplete for production.
+Parameters:
+  DeployChapter7ToolExecution:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  ApprovedWorkerImage:
+    Type: String
+    Default: 'REPLACE_WITH_APPROVED_ECR_IMAGE_AT_SHA256_DIGEST'
+  ApprovedKmsKeyArn:
+    Type: String
+    Default: ''
+  ApprovedVpcId:
+    Type: String
+    Default: ''
+  ApprovedSubnetIds:
+    Type: CommaDelimitedList
+    Default: ''
+  ApprovedSecurityGroupIds:
+    Type: CommaDelimitedList
+    Default: ''
+Conditions:
+  DeployChapter7ToolExecutionCondition: !Equals [!Ref DeployChapter7ToolExecution, 'true']
+Resources:
+  PatchWorkerRole:
+    Type: AWS::IAM::Role
+    Condition: DeployChapter7ToolExecutionCondition
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      Policies:
+        - PolicyName: DenyHighImpactActions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Deny
+                Action:
+                  - bedrock:InvokeModel
+                  - secretsmanager:GetSecretValue
+                  - kms:Decrypt
+                  - iam:PassRole
+                  - sts:AssumeRole
+                  - codepipeline:StartPipelineExecution
+                Resource: '*'
+  PatchWorkerProject:
+    Type: AWS::CodeBuild::Project
+    Condition: DeployChapter7ToolExecutionCondition
+    Properties:
+      ServiceRole: !GetAtt PatchWorkerRole.Arn
+      EncryptionKey: !Ref ApprovedKmsKeyArn
+      TimeoutInMinutes: 15
+      QueuedTimeoutInMinutes: 15
+      ConcurrentBuildLimit: 1
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - echo "Reference only; replace with reviewed, immutable worker entrypoint"
+          artifacts:
+            files: []
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref ApprovedWorkerImage
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: false
+      VpcConfig:
+        VpcId: !Ref ApprovedVpcId
+        Subnets: !Ref ApprovedSubnetIds
+        SecurityGroupIds: !Ref ApprovedSecurityGroupIds
