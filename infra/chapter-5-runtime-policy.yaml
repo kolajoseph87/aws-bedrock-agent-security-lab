@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 5 runtime-policy reference. No resources by default.
+
+Parameters:
+  DeployChapter5RuntimePolicy:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  RuntimePolicyExecutionRoleArn:
+    Type: String
+    Default: arn:aws:iam::111122223333:role/REPLACE-ME-RuntimePolicyRole
+  RuntimePolicyCodeBucket:
+    Type: String
+    Default: replace-me-approved-code-bucket
+  RuntimePolicyCodeKey:
+    Type: String
+    Default: replace-me/runtime-policy-signed.zip
+  RuntimePolicyCodeSigningConfigArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:111122223333:code-signing-config:csc-REPLACE
+  RuntimePolicySubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  RuntimePolicySecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  LogsKmsKeyArn:
+    Type: String
+    Default: arn:aws:kms:us-east-1:111122223333:key/REPLACE-ME
+
+Conditions:
+  DeployRuntimePolicy: !Equals [!Ref DeployChapter5RuntimePolicy, 'true']
+
+Resources:
+  RuntimePolicyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: DeployRuntimePolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /northstar/training/chapter5/runtime-policy
+      KmsKeyId: !Ref LogsKmsKeyArn
+      RetentionInDays: 30
+
+  RuntimePolicyFunction:
+    Type: AWS::Lambda::Function
+    Condition: DeployRuntimePolicy
+    DependsOn: RuntimePolicyLogGroup
+    Properties:
+      FunctionName: northstar-training-chapter5-runtime-policy
+      Description: Reference enforcement point; approved signed code is supplied separately.
+      Architectures: [arm64]
+      Runtime: python3.13
+      Handler: app.handler
+      Role: !Ref RuntimePolicyExecutionRoleArn
+      Code:
+        S3Bucket: !Ref RuntimePolicyCodeBucket
+        S3Key: !Ref RuntimePolicyCodeKey
+      CodeSigningConfigArn: !Ref RuntimePolicyCodeSigningConfigArn
+      ReservedConcurrentExecutions: 5
+      Timeout: 3
+      MemorySize: 256
+      VpcConfig:
+        SecurityGroupIds: !Ref RuntimePolicySecurityGroupIds
+        SubnetIds: !Ref RuntimePolicySubnetIds
+      Environment:
+        Variables:
+          DEFAULT_DECISION: deny
+          POLICY_VERSION: 1.0.0
+          LOG_CONTENT_BODIES: 'false'
+      TracingConfig:
+        Mode: Active
+
+Outputs:
+  DeploymentState:
+    Value: !If [DeployRuntimePolicy, deployed-reference-only, no-resources-created]

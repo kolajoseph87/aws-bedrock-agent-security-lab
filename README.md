@@ -9,6 +9,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 2 — Private VPC foundation, separated trust zones, Bedrock service endpoints, restricted egress, and network evidence
 - Chapter 3 — Bedrock model allowlisting, inference governance, minimum-necessary context, privacy gates, and change control
 - Chapter 4 — Separate workload identities, temporary credentials, restricted trust, KMS governance, and Secrets Manager controls
+- Chapter 5 — Runtime PRE_INPUT, PRE_TOOL, and PRE_OUTPUT enforcement with exact tool authorization
 
 ## Scenario
 
@@ -56,6 +57,13 @@ python3 -m unittest discover -s tests -v
 
 ```bash
 python3 scripts/validate_identity_security.py --manifest identity-security/identity-kms-secrets.aws.json --evidence evidence/lab-4-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 5
+
+```bash
+python3 scripts/validate_runtime_policy.py --manifest runtime-policy/runtime-policy.aws.json --evidence evidence/lab-5-validation.json
 python3 -m unittest discover -s tests -v
 ```
 
