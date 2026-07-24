@@ -13,6 +13,8 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 6 — Secure RAG ingestion, tenant-aware retrieval, chunk inspection, citations, and deletion validation
 - Chapter 7 — Isolated tool execution, immutable work orders, disposable patch workers, and verified artifacts
 - Chapter 8 — Independent CI/CD release governance, software-supply-chain verification, signed artifacts, and safe deployment
+- Chapter 9 — Privacy-safe runtime observability, correlated security events, anomaly detection, immutable evidence, and alerting
+- Chapter 10 — Isolated agent red teaming, immutable attack corpora, adversarial regression tests, and independent promotion gates
 
 ## Scenario
 
@@ -90,6 +92,24 @@ python3 -m unittest discover -s tests -v
 python3 scripts/validate_release_governance.py --manifest release-governance/release-governance.aws.json --evidence evidence/lab-8-validation.json
 python3 -m unittest discover -s tests -v
 ```
+
+## Run Chapter 9
+
+```bash
+python3 scripts/validate_observability.py --manifest observability/observability.aws.json --evidence evidence/lab-9-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 10
+
+```bash
+python3 scripts/validate_security_evaluations.py --manifest security-evaluations/security-evaluations.aws.json --evidence evidence/lab-10-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+Apply Chapter 10 only after the corrected Chapter 9 update. The corrected
+Chapters 0–9 baseline has 397 tests; Chapter 10 adds 75 tests for an expected
+cumulative total of 472.
 
 No Python package installation is required. Offline mode makes no AWS API calls and creates no resources or cost.
 

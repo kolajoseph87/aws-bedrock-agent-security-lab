@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 10 security-evaluation reference. Disabled by default.
+Parameters:
+  DeployChapter10SecurityEvaluations:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  EvaluationResultKmsKeyArn:
+    Type: String
+    Default: REPLACE_WITH_KMS_KEY_ARN
+  EvaluatorImage:
+    Type: String
+    Default: REPLACE_WITH_APPROVED_ECR_IMAGE_AT_SHA256_DIGEST
+    AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'
+  EvaluatorVpcId:
+    Type: AWS::EC2::VPC::Id
+  EvaluatorSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  EvaluatorSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+Conditions:
+  DeployChapter10SecurityEvaluationsCondition: !Equals [!Ref DeployChapter10SecurityEvaluations, 'true']
+Resources:
+  SecurityEvaluationResults:
+    Type: AWS::S3::Bucket
+    Condition: DeployChapter10SecurityEvaluationsCondition
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref EvaluationResultKmsKeyArn
+            BucketKeyEnabled: true
+      ObjectLockEnabled: true
+      ObjectLockConfiguration:
+        ObjectLockEnabled: Enabled
+        Rule:
+          DefaultRetention:
+            Mode: COMPLIANCE
+            Days: 400
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  SecurityEvaluationRole:
+    Type: AWS::IAM::Role
+    Condition: DeployChapter10SecurityEvaluationsCondition
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: codebuild.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+              ArnEquals:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:project/northstar-ch10-security-evaluations
+      Policies:
+        - PolicyName: WriteExactEvaluationResults
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [s3:PutObject]
+                Resource: !Sub ${SecurityEvaluationResults.Arn}/chapter-10/*
+              - Effect: Allow
+                Action: [kms:Encrypt, kms:GenerateDataKey]
+                Resource: !Ref EvaluationResultKmsKeyArn
+              - Effect: Deny
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:Converse
+                  - secretsmanager:GetSecretValue
+                  - kms:Decrypt
+                  - iam:PassRole
+                  - sts:AssumeRole
+                  - codepipeline:StartPipelineExecution
+                  - s3:DeleteObject
+                Resource: '*'
+  SecurityEvaluationProject:
+    Type: AWS::CodeBuild::Project
+    Condition: DeployChapter10SecurityEvaluationsCondition
+    Properties:
+      Name: northstar-ch10-security-evaluations
+      ServiceRole: !GetAtt SecurityEvaluationRole.Arn
+      ConcurrentBuildLimit: 1
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - echo "Guarded reference only; supply independently reviewed immutable evaluation commands."
+      Artifacts: {Type: NO_ARTIFACTS}
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref EvaluatorImage
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: false
+      QueuedTimeoutInMinutes: 15
+      TimeoutInMinutes: 15
+      VpcConfig:
+        VpcId: !Ref EvaluatorVpcId
+        Subnets: !Ref EvaluatorSubnetIds
+        SecurityGroupIds: !Ref EvaluatorSecurityGroupIds
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+Outputs:
+  DeploymentStatus:
+    Value: !If [DeployChapter10SecurityEvaluationsCondition, guarded-reference-created, disabled-no-resources]
