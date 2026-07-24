@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "chapter": 3,
+  "organization": "Northstar Health Systems",
+  "environment": "development",
+  "data_classification": "synthetic-only",
+  "use_case": "secure-code-review",
+  "model_catalog": {
+    "default_deny": true,
+    "approved_regions": ["us-east-1"],
+    "approved_models": [
+      {
+        "alias": "northstar-code-review-primary",
+        "provider": "Anthropic",
+        "model_id": "anthropic.claude-haiku-4-5-20251001-v1:0",
+        "region": "us-east-1",
+        "usage": ["explain-vulnerability", "propose-patch"],
+        "approval_status": "approved-for-synthetic-lab",
+        "owner": "AppSec Engineering",
+        "risk_review": "MR-003",
+        "review_expires": "2026-09-15"
+      }
+    ],
+    "cross_region_inference_allowed": false,
+    "marketplace_auto_enable_allowed": false,
+    "unversioned_model_aliases_allowed": false
+  },
+  "invocation_policy": {
+    "direct_model_invocation_only": true,
+    "approved_api": "Converse",
+    "streaming_allowed": false,
+    "batch_inference_allowed": false,
+    "provisioned_throughput_allowed": false,
+    "model_customization_allowed": false,
+    "human_approval_for_model_change": true,
+    "caller_identity_required": true,
+    "repository_allowlist_required": true,
+    "request_purpose_required": true,
+    "policy_decision_before_invocation": true,
+    "fail_closed_on_policy_error": true
+  },
+  "inference_limits": {
+    "temperature_max": 0.2,
+    "top_p_max": 0.9,
+    "input_tokens_max": 12000,
+    "output_tokens_max": 3000,
+    "timeout_seconds_max": 60,
+    "requests_per_pr_max": 10,
+    "cost_limit_usd_per_pr": 1.0
+  },
+  "data_controls": {
+    "synthetic_only": true,
+    "real_phi_allowed": false,
+    "real_pii_allowed": false,
+    "production_source_allowed": false,
+    "credentials_allowed": false,
+    "minimum_necessary_context": true,
+    "deterministic_input_scan": true,
+    "bedrock_guardrail_required": true,
+    "deterministic_output_scan": true,
+    "prompt_logging_allowed": false,
+    "completion_logging_allowed": false,
+    "invocation_logging_body_capture": false,
+    "sanitized_security_metadata_only": true
+  },
+  "iam_contract": {
+    "allowed_actions": ["bedrock:Converse"],
+    "wildcard_action_allowed": false,
+    "wildcard_resource_allowed": false,
+    "approved_model_resource_binding_required": true,
+    "region_condition_required": true,
+    "principal_tag_condition_required": true,
+    "deny_unapproved_models_required": true
+  },
+  "change_control": {
+    "model_inventory_required": true,
+    "security_privacy_legal_review_required": true,
+    "non_production_evaluation_required": true,
+    "fixed_synthetic_evaluation_set_required": true,
+    "security_regression_tests_required": true,
+    "independent_approval_required": true,
+    "rollback_model_required": true,
+    "material_change_invalidates_approval": true,
+    "drift_detection_required": true
+  },
+  "safe_attacks": [
+    {"id": "MODEL-01", "test": "request_unapproved_model", "expected": "denied_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-02", "test": "request_approved_model_in_wrong_region", "expected": "denied_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-03", "test": "send_synthetic_phi_marker", "expected": "denied_and_sanitized_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-04", "test": "send_credential_marker", "expected": "denied_and_sanitized_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-05", "test": "exceed_token_and_cost_limits", "expected": "denied_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-06", "test": "policy_service_error", "expected": "denied_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-07", "test": "unreviewed_model_version_change", "expected": "denied_before_invocation", "model_calls": 0, "prohibited_side_effects": 0},
+    {"id": "MODEL-08", "test": "capture_prompt_in_invocation_log", "expected": "denied_before_invocation", "model_calls": 0, "prohibited_side_effects": 0}
+  ],
+  "limitations": [
+    "Offline validation checks a declared governance contract and does not call Amazon Bedrock.",
+    "An approved model is not automatically safe for every task, dataset, or user.",
+    "IAM model permission does not authorize repository changes, tool calls, or deployments.",
+    "Bedrock Guardrails is defense in depth and does not replace deterministic PHI, PII, credential, input, or output checks.",
+    "Model behavior can change across versions and requires repeat evaluation.",
+    "Model lifecycle, in-Region availability, account access, quotas, and pricing must be verified live before deployment."
+  ]
+}

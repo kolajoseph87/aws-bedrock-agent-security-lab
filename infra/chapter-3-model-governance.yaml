@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 3 reference for Northstar model invocation governance. Default creates no resources.
+
+Parameters:
+  DeployChapter3ModelGovernance:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+  ApprovedModelId:
+    Type: String
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
+  ApprovedRoleName:
+    Type: String
+    Default: northstar-development-secure-coding-agent
+  ApprovedUseCaseTag:
+    Type: String
+    Default: secure-code-review
+  ApprovedGuardrailIdentifier:
+    Type: String
+    Default: replace-with-reviewed-guardrail-arn
+
+Conditions:
+  CreateChapter3Controls: !Equals [!Ref DeployChapter3ModelGovernance, 'true']
+
+Resources:
+  SecureCodingAgentInvokePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: CreateChapter3Controls
+    Properties:
+      Description: Chapter 3 reference policy. Review exact model availability, ARN, and role attachment before use.
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowApprovedConverseOnly
+            Effect: Allow
+            Action:
+              - bedrock:Converse
+            Resource: !Sub arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ApprovedModelId}
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+                aws:PrincipalTag/NorthstarUseCase: !Ref ApprovedUseCaseTag
+          - Sid: DenyBedrockOutsideApprovedRegion
+            Effect: Deny
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+              - bedrock:Converse
+              - bedrock:ConverseStream
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: DenyInferenceWithoutApprovedGuardrail
+            Effect: Deny
+            Action:
+              - bedrock:Converse
+              - bedrock:ConverseStream
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                bedrock:GuardrailIdentifier: !Ref ApprovedGuardrailIdentifier
+      Roles:
+        - !Ref ApprovedRoleName
+
+Outputs:
+  GuardStatus:
+    Value: !If [CreateChapter3Controls, explicit-review-required-before-deployment, no-resources-created]
