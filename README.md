@@ -10,6 +10,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 3 — Bedrock model allowlisting, inference governance, minimum-necessary context, privacy gates, and change control
 - Chapter 4 — Separate workload identities, temporary credentials, restricted trust, KMS governance, and Secrets Manager controls
 - Chapter 5 — Runtime PRE_INPUT, PRE_TOOL, and PRE_OUTPUT enforcement with exact tool authorization
+- Chapter 6 — Secure RAG ingestion, tenant-aware retrieval, chunk inspection, citations, and deletion validation
 
 ## Scenario
 
@@ -64,6 +65,13 @@ python3 -m unittest discover -s tests -v
 
 ```bash
 python3 scripts/validate_runtime_policy.py --manifest runtime-policy/runtime-policy.aws.json --evidence evidence/lab-5-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 6
+
+```bash
+python3 scripts/validate_secure_rag.py --manifest secure-rag/secure-rag.aws.json --evidence evidence/lab-6-validation.json
 python3 -m unittest discover -s tests -v
 ```
 

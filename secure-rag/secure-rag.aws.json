@@ -1,0 +1,99 @@
+{
+  "chapter": 6,
+  "environment": "training",
+  "data_classification": "synthetic-only",
+  "healthcare_controls": {
+    "synthetic_data_only": true,
+    "real_phi_allowed": false,
+    "real_pii_allowed": false,
+    "production_source_allowed": false,
+    "minimum_necessary_chunks_required": true,
+    "deterministic_ingestion_scan_required": true,
+    "deterministic_retrieval_scan_required": true,
+    "guardrail_applies_to_retrieved_references": false
+  },
+  "source_governance": {
+    "approved_sources_only": true,
+    "immutable_source_version_required": true,
+    "malware_secret_phi_pii_scan_before_ingestion": true,
+    "prompt_injection_scan_before_ingestion": true,
+    "owner_and_classification_required": true,
+    "provenance_hash_required": true,
+    "quarantine_on_failure": true,
+    "automatic_ingestion_from_pull_requests": false
+  },
+  "isolation": {
+    "knowledge_base_per_trust_domain": true,
+    "repository_and_tenant_metadata_required": true,
+    "server_derived_metadata_filters_required": true,
+    "prompt_supplied_scope_trusted": false,
+    "cross_repository_retrieval_allowed": false,
+    "wildcard_knowledge_base_access_allowed": false
+  },
+  "retrieval_policy": {
+    "execution_order": ["PRE_QUERY", "RETRIEVE", "POST_RETRIEVAL", "GENERATE", "PRE_OUTPUT", "AUDIT"],
+    "fail_mode": "closed",
+    "max_chunks": 5,
+    "max_chunk_characters": 4000,
+    "minimum_relevance_score": 0.72,
+    "citations_required": true,
+    "source_hash_revalidation_required": true,
+    "retrieved_text_treated_as_untrusted_data": true,
+    "instructions_in_retrieved_text_followed": false,
+    "zero_results_prevents_unsupported_answer": true,
+    "streaming_before_validation_allowed": false
+  },
+  "lifecycle": {
+    "deletion_policy": "DELETE",
+    "source_deletion_requires_sync_or_direct_document_delete": true,
+    "post_delete_retrieval_test_required": true,
+    "stale_vector_detection_required": true,
+    "failed_ingestion_alert_required": true,
+    "rollback_to_approved_snapshot_required": true
+  },
+  "aws_controls": {
+    "exact_knowledge_base_arn_required": true,
+    "separate_ingestion_and_retrieval_roles": true,
+    "customer_managed_kms_keys_required": true,
+    "s3_block_public_access_required": true,
+    "s3_versioning_required": true,
+    "private_endpoints_required": true,
+    "cloudtrail_and_cloudwatch_required": true,
+    "cross_region_inference_allowed": false,
+    "live_availability_quota_access_lifecycle_pricing_check_required": true
+  },
+  "audit": {
+    "required_fields": ["correlation_id", "principal", "repository_id", "knowledge_base_id", "query_hash", "filter_hash", "retrieved_chunk_ids", "source_version_hashes", "decision", "reason_code", "timestamp"],
+    "forbidden_fields": ["full_query", "retrieved_text", "source_body", "patient_identifier", "access_token", "secret_value"],
+    "append_only_live_destination_required": true
+  },
+  "safe_attacks": [
+    {"id":"rag-01-poisoned-instruction","expected":"denied","stop_at":"POST_RETRIEVAL","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-02-cross-repository","expected":"denied","stop_at":"PRE_QUERY","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-03-prompt-supplied-tenant","expected":"denied","stop_at":"PRE_QUERY","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-04-synthetic-phi-chunk","expected":"denied","stop_at":"POST_RETRIEVAL","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-05-secret-marker","expected":"denied","stop_at":"POST_RETRIEVAL","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-06-stale-deleted-document","expected":"denied","stop_at":"POST_RETRIEVAL","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-07-hash-mismatch","expected":"denied","stop_at":"POST_RETRIEVAL","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-08-low-relevance","expected":"denied","stop_at":"POST_RETRIEVAL","model_calls":0,"prohibited_side_effects":0},
+    {"id":"rag-09-uncited-output","expected":"denied","stop_at":"PRE_OUTPUT","model_calls":1,"prohibited_side_effects":0},
+    {"id":"rag-10-approved-read","expected":"allowed","stop_at":"AUDIT","model_calls":1,"prohibited_side_effects":0}
+  ],
+  "review_and_evidence": {
+    "owner": "Northstar AppSec RAG Control Owner",
+    "review_expires": "2026-09-15",
+    "independent_approval_required": true,
+    "negative_tests_required": true,
+    "live_ingestion_and_retrieval_tests_required": true,
+    "evidence_contains_sensitive_values": false
+  },
+  "limitations": [
+    "Offline validation does not create or query an Amazon Bedrock Knowledge Base.",
+    "Offline validation does not invoke Amazon Bedrock or an embedding model.",
+    "Offline validation does not access S3, a vector store, a repository, or patient data.",
+    "Offline validation does not prove that metadata filters are enforced in a live account.",
+    "Offline validation does not prove deletion from a live vector store.",
+    "Offline validation does not prove HIPAA compliance.",
+    "Live IAM, KMS, endpoint, ingestion, retrieval, quota, lifecycle, availability, and pricing checks remain mandatory."
+  ]
+}

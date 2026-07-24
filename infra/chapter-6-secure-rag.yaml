@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 6 secure RAG reference; disabled by default and incomplete for production.
+Parameters:
+  DeployChapter6SecureRag:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  ApprovedKmsKeyArn:
+    Type: String
+    Default: ''
+Conditions:
+  DeployChapter6SecureRagCondition: !Equals [!Ref DeployChapter6SecureRag, 'true']
+Resources:
+  ApprovedSourceBucket:
+    Type: AWS::S3::Bucket
+    Condition: DeployChapter6SecureRagCondition
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref ApprovedKmsKeyArn
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: data-classification
+          Value: synthetic-only
+  KnowledgeBaseDataSourceContract:
+    Type: AWS::Bedrock::DataSource
+    Condition: DeployChapter6SecureRagCondition
+    Properties:
+      DataDeletionPolicy: DELETE
+      DataSourceConfiguration:
+        Type: S3
+        S3Configuration:
+          BucketArn: !GetAtt ApprovedSourceBucket.Arn
+      KnowledgeBaseId: REPLACE_WITH_REVIEWED_KNOWLEDGE_BASE_ID
+      Name: northstar-approved-secure-coding-sources
