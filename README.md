@@ -107,12 +107,6 @@ python3 scripts/validate_security_evaluations.py --manifest security-evaluations
 python3 -m unittest discover -s tests -v
 ```
 
-Apply Chapter 10 only after the corrected Chapter 9 update. The corrected
-Chapters 0–9 baseline has 397 tests; Chapter 10 adds 75 tests for an expected
-cumulative total of 472.
-
-No Python package installation is required. Offline mode makes no AWS API calls and creates no resources or cost.
-
 ## Safe deployment posture
 
 The Chapter 0 CloudFormation template defaults `DeployLabFoundation` to `false`. With the default, it creates no resources. Review a change set before any future deployment, use an approved non-production AWS account, and never place credentials or sensitive data in parameters, tags, evidence, or Git.

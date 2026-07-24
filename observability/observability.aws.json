@@ -1,0 +1,119 @@
+{
+  "chapter": 9,
+  "environment": "non-production",
+  "data_classification": "synthetic-only",
+  "event_flow": ["EMIT", "SANITIZE", "DELIVER", "CORRELATE", "DETECT", "ALERT", "INVESTIGATE"],
+  "telemetry_policy": {
+    "structured_events_required": true,
+    "schema_version_required": true,
+    "server_generated_identity_required": true,
+    "correlation_id_required": true,
+    "policy_version_required": true,
+    "decision_and_reason_required": true,
+    "tool_and_resource_hashes_required": true,
+    "raw_prompt_logging_allowed": false,
+    "raw_completion_logging_allowed": false,
+    "retrieved_chunk_logging_allowed": false,
+    "source_or_patch_body_logging_allowed": false,
+    "tool_argument_body_logging_allowed": false,
+    "credentials_or_tokens_logging_allowed": false
+  },
+  "delivery_policy": {
+    "fail_closed_for_security_audit_events": true,
+    "bounded_local_buffer_required": true,
+    "encrypted_dead_letter_queue_required": true,
+    "retry_with_backoff_required": true,
+    "sequence_and_deduplication_required": true,
+    "clock_synchronization_required": true,
+    "delivery_health_alarm_required": true,
+    "agent_can_disable_telemetry": false
+  },
+  "storage_policy": {
+    "separate_security_log_account_required": true,
+    "customer_managed_kms_key_required": true,
+    "append_only_immutable_archive_required": true,
+    "object_lock_required": true,
+    "retention_days": 400,
+    "least_privilege_read_roles_required": true,
+    "agent_log_read_access_allowed": false,
+    "agent_log_delete_access_allowed": false,
+    "cross_region_replication_allowed": false,
+    "public_access_allowed": false
+  },
+  "detection_policy": {
+    "runtime_denial_spike": true,
+    "prompt_injection_pattern": true,
+    "cross_tenant_or_repository_attempt": true,
+    "tool_authorization_failure": true,
+    "work_order_replay": true,
+    "unexpected_tool_or_resource": true,
+    "model_or_policy_version_drift": true,
+    "credential_or_phi_detector_hit": true,
+    "telemetry_gap_or_tamper": true,
+    "token_cost_and_latency_anomaly": true,
+    "release_or_deployment_bypass": true,
+    "severity_and_runbook_required": true,
+    "false_positive_tuning_requires_approval": true,
+    "automated_destructive_response_allowed": false
+  },
+  "aws_controls": {
+    "cloudtrail_organization_trail_required": true,
+    "cloudtrail_log_file_validation_required": true,
+    "cloudwatch_metric_filters_and_alarms_required": true,
+    "eventbridge_routing_required": true,
+    "security_lake_integration_review_required": true,
+    "guardduty_integration_review_required": true,
+    "bedrock_invocation_logging_body_capture": false,
+    "vpc_flow_logs_required": true,
+    "kms_key_policy_separation_required": true,
+    "live_availability_quota_access_lifecycle_pricing_check_required": true
+  },
+  "audit_event": {
+    "required_fields": ["event_id", "schema_version", "timestamp", "sequence_number", "previous_event_hash", "event_hash", "correlation_id", "principal_id", "session_id_hash", "tenant_id_hash", "repository_id_hash", "model_id", "policy_version", "stage", "action", "decision", "reason_code", "latency_ms", "input_tokens", "output_tokens"],
+    "forbidden_fields": ["raw_prompt", "raw_completion", "retrieved_chunk", "source_body", "patch_body", "tool_arguments", "patient_identifier", "email_address", "access_token", "secret_value", "cloud_credential"],
+    "unknown_fields_rejected": true,
+    "sensitive_values_redacted_before_delivery": true,
+    "hashes_use_approved_keyed_method": true,
+    "event_integrity_chain_required": true,
+    "server_scope_hash_comparison_required": true
+  },
+  "alerting": {
+    "independent_security_destination_required": true,
+    "high_severity_ack_minutes": 15,
+    "duplicate_suppression_required": true,
+    "alert_contains_sensitive_bodies": false,
+    "runbook_link_required": true,
+    "owner_required": true
+  },
+  "safe_attacks": [
+    {"id": "raw-prompt-in-log", "stop_at": "SANITIZE", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "credential-in-tool-arguments", "stop_at": "SANITIZE", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "forged-principal", "stop_at": "EMIT", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "unknown-event-field", "stop_at": "SANITIZE", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "duplicate-event-replay", "stop_at": "CORRELATE", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "telemetry-disable-request", "stop_at": "DELIVER", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "cross-tenant-attempt", "stop_at": "DETECT", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "work-order-replay", "stop_at": "DETECT", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "policy-version-drift", "stop_at": "DETECT", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "audit-delivery-gap", "stop_at": "ALERT", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "agent-log-delete", "stop_at": "EMIT", "aws_calls": 0, "prohibited_side_effects": 0},
+    {"id": "destructive-auto-response", "stop_at": "ALERT", "aws_calls": 0, "prohibited_side_effects": 0}
+  ],
+  "review_and_evidence": {
+    "owner": "Northstar Security Operations and AppSec",
+    "review_expires": "2026-09-15",
+    "independent_approval_required": true,
+    "negative_tests_required": true,
+    "live_detection_delivery_retention_tests_required": true,
+    "evidence_contains_sensitive_values": false
+  },
+  "limitations": [
+    "Offline validation does not invoke AWS services.",
+    "Offline validation does not enable or verify Bedrock model invocation logging.",
+    "Offline validation does not prove live CloudTrail or CloudWatch delivery.",
+    "Offline validation does not prove Security Lake or GuardDuty integration.",
+    "Offline validation does not prove alert delivery or responder action.",
+    "Offline validation does not prove retention, immutability, or deletion protection.",
+    "Offline validation does not prove HIPAA compliance."
+  ]
+}
