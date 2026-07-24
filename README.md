@@ -15,6 +15,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 8 — Independent CI/CD release governance, software-supply-chain verification, signed artifacts, and safe deployment
 - Chapter 9 — Privacy-safe runtime observability, correlated security events, anomaly detection, immutable evidence, and alerting
 - Chapter 10 — Isolated agent red teaming, immutable attack corpora, adversarial regression tests, and independent promotion gates
+- Chapter 11 — Independent kill switch, revocation, quarantine, forensic preservation, verified recovery, and incident exercises
 
 ## Scenario
 
@@ -104,6 +105,13 @@ python3 -m unittest discover -s tests -v
 
 ```bash
 python3 scripts/validate_security_evaluations.py --manifest security-evaluations/security-evaluations.aws.json --evidence evidence/lab-10-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 11
+
+```bash
+python3 scripts/validate_incident_response.py --manifest incident-response/incident-response.aws.json --evidence evidence/lab-11-validation.json
 python3 -m unittest discover -s tests -v
 ```
 
