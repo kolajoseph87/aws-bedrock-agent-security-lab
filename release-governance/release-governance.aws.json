@@ -1,0 +1,129 @@
+{
+  "chapter": 8,
+  "environment": "non-production",
+  "data_classification": "synthetic-only",
+  "pipeline_order": ["PATCH_ARTIFACT", "VERIFY_PROVENANCE", "SECURITY_TESTS", "BUILD", "SIGN", "INDEPENDENT_APPROVAL", "RELEASE", "DEPLOY"],
+  "source_policy": {
+    "protected_branch_required": true,
+    "direct_push_allowed": false,
+    "force_push_allowed": false,
+    "agent_can_merge": false,
+    "agent_can_approve": false,
+    "required_reviewers": 2,
+    "codeowners_required": true,
+    "stale_approvals_dismissed": true,
+    "head_sha_revalidated": true,
+    "pipeline_changes_need_security_owner": true
+  },
+  "provenance": {
+    "chapter7_patch_hash_required": true,
+    "immutable_source_sha_required": true,
+    "trusted_builder_identity_required": true,
+    "build_definition_hash_required": true,
+    "slsa_provenance_required": true,
+    "sbom_required": true,
+    "dependency_lockfile_required": true,
+    "untrusted_fork_credentials_allowed": false
+  },
+  "security_gates": {
+    "sast_required": true,
+    "sca_required": true,
+    "secret_scan_required": true,
+    "iac_scan_required": true,
+    "malware_scan_required": true,
+    "unit_tests_required": true,
+    "policy_tests_required": true,
+    "critical_findings_allowed": 0,
+    "high_findings_allowed": 0,
+    "waivers_expire": true,
+    "waivers_need_independent_risk_owner": true,
+    "fail_mode": "closed"
+  },
+  "dependency_policy": {
+    "allowlisted_registries_only": true,
+    "versions_pinned": true,
+    "integrity_hashes_required": true,
+    "mutable_tags_allowed": false,
+    "install_scripts_allowed": false,
+    "new_dependency_review_required": true,
+    "license_policy_required": true,
+    "artifact_quarantine_required": true
+  },
+  "artifact_policy": {
+    "reproducible_build_check_required": true,
+    "customer_managed_kms_key_required": true,
+    "artifact_digest_required": true,
+    "cosign_signature_required": true,
+    "signature_verified_before_release": true,
+    "immutable_storage_required": true,
+    "retention_required": true,
+    "promotion_by_digest_only": true,
+    "rebuild_between_environments": false
+  },
+  "deployment_policy": {
+    "agent_can_release": false,
+    "agent_can_deploy": false,
+    "pipeline_role_separate_from_build_role": true,
+    "production_role_separate": true,
+    "oidc_temporary_credentials_only": true,
+    "long_lived_cloud_credentials_allowed": false,
+    "environment_approval_required": true,
+    "change_ticket_required": true,
+    "canary_or_blue_green_required": true,
+    "automatic_rollback_required": true,
+    "production_data_in_ci_allowed": false
+  },
+  "healthcare_controls": {
+    "synthetic_data_only": true,
+    "real_phi_allowed": false,
+    "real_pii_allowed": false,
+    "logs_artifacts_sbom_provenance_scanned": true,
+    "sensitive_bodies_in_evidence_allowed": false
+  },
+  "audit": {
+    "required_fields": ["correlation_id", "repository_id", "source_sha", "patch_hash", "builder_identity", "build_definition_hash", "sbom_hash", "artifact_digest", "signature_identity", "approver_id", "target_environment", "decision", "reason_code", "timestamp"],
+    "forbidden_fields": ["source_body", "patch_body", "patient_identifier", "access_token", "secret_value", "cloud_credential", "command_output"],
+    "append_only_destination_required": true
+  },
+  "aws_controls": {
+    "codepipeline_v2_required": true,
+    "codebuild_privileged_mode": false,
+    "artifact_store_encrypted": true,
+    "cloudtrail_required": true,
+    "eventbridge_alerting_required": true,
+    "inspector_or_approved_scanner_required": true,
+    "signer_profile_required": true,
+    "live_availability_quota_access_lifecycle_pricing_check_required": true
+  },
+  "safe_attacks": [
+    {"id": "direct-push", "stop_at": "VERIFY_PROVENANCE", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "sha-swap-after-approval", "stop_at": "VERIFY_PROVENANCE", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "unsigned-patch", "stop_at": "VERIFY_PROVENANCE", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "dependency-confusion", "stop_at": "SECURITY_TESTS", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "mutable-container-tag", "stop_at": "SECURITY_TESTS", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "secret-in-build-log", "stop_at": "SECURITY_TESTS", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "critical-sca-finding", "stop_at": "SECURITY_TESTS", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "forged-sbom", "stop_at": "SIGN", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "artifact-substitution", "stop_at": "RELEASE", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "self-approval", "stop_at": "INDEPENDENT_APPROVAL", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "expired-waiver", "stop_at": "SECURITY_TESTS", "deployments": 0, "prohibited_side_effects": 0},
+    {"id": "production-role-from-build", "stop_at": "DEPLOY", "deployments": 0, "prohibited_side_effects": 0}
+  ],
+  "review_and_evidence": {
+    "owner": "Northstar AppSec and Platform Security",
+    "review_expires": "2026-09-15",
+    "independent_approval_required": true,
+    "negative_tests_required": true,
+    "live_signature_provenance_rollback_tests_required": true,
+    "evidence_contains_sensitive_values": false
+  },
+  "limitations": [
+    "Offline validation does not invoke AWS services.",
+    "Offline validation does not build, sign, release, or deploy an artifact.",
+    "Offline validation does not prove live IAM or branch protection.",
+    "Offline validation does not prove SLSA provenance authenticity.",
+    "Offline validation does not prove scanner coverage or vulnerability absence.",
+    "Offline validation does not prove rollback in a live environment.",
+    "Offline validation does not prove HIPAA compliance."
+  ]
+}
