@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Disabled-by-default Chapter 13 compliance evidence reference
+Parameters:
+  DeployChapter13ComplianceAssurance:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true','false']
+Conditions:
+  DeployChapter13: !Equals [!Ref DeployChapter13ComplianceAssurance, 'true']
+Resources:
+  EvidenceKey:
+    Type: AWS::KMS::Key
+    Condition: DeployChapter13
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      EnableKeyRotation: true
+      PendingWindowInDays: 30
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RootAdministration
+            Effect: Allow
+            Principal: {AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'}
+            Action: 'kms:*'
+            Resource: '*'
+  EvidenceBucket:
+    Type: AWS::S3::Bucket
+    Condition: DeployChapter13
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EvidenceKey.Arn
+      BucketKeyEnabled: true
+      ObjectLockEnabled: true
+      ObjectLockConfiguration:
+        ObjectLockEnabled: Enabled
+        Rule:
+          DefaultRetention:
+            Mode: COMPLIANCE
+            Days: 400
+      VersioningConfiguration: {Status: Enabled}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  EvidenceBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: DeployChapter13
+    Properties:
+      Bucket: !Ref EvidenceBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: [!Sub '${EvidenceBucket.Arn}', !Sub '${EvidenceBucket.Arn}/*']
+            Condition: {Bool: {'aws:SecureTransport': 'false'}}

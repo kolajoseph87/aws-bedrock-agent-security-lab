@@ -17,6 +17,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 10 — Isolated agent red teaming, immutable attack corpora, adversarial regression tests, and independent promotion gates
 - Chapter 11 — Independent kill switch, revocation, quarantine, forensic preservation, verified recovery, and incident exercises
 - Chapter 12 — Separate agent identities, authenticated handoffs, bounded delegation, confused-deputy protection, and cascading-compromise containment
+- Chapter 13 — Framework mapping, traceable control evidence, independent assurance, and fail-closed production-readiness gates
 
 ## Scenario
 
@@ -120,6 +121,13 @@ python3 -m unittest discover -s tests -v
 
 ```bash
 python3 scripts/validate_multi_agent_security.py --manifest multi-agent-security/multi-agent-security.aws.json --evidence evidence/lab-12-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 13
+
+```bash
+python3 scripts/validate_compliance_assurance.py --manifest compliance-assurance/compliance-assurance.aws.json --evidence evidence/lab-13-validation.json
 python3 -m unittest discover -s tests -v
 ```
 

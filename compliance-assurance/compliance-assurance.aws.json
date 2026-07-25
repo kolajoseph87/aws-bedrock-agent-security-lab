@@ -1,0 +1,105 @@
+{
+  "chapter": 13,
+  "environment": "non-production",
+  "system": {"name": "Northstar Bedrock Secure Coding Agent", "owner": "AI Security", "business_owner": "Application Security", "risk_tier": "high", "production_use_authorized": false},
+  "frameworks": {
+    "owasp_agentic_ai": {"version": "2026-training-snapshot", "version_pinned": true, "control_mapping_required": true},
+    "nist_ai_rmf": {"version": "AI-RMF-1.0", "govern_map_measure_manage_covered": true, "profiles_and_residual_risk_required": true},
+    "mitre_atlas": {"version": "2026-07-training-snapshot", "threat_mapping_required": true, "detection_and_mitigation_mapping_required": true},
+    "hipaa_security_rule": {"version": "2026-07-applicability-snapshot", "applicability_review_required": true, "administrative_physical_technical_safeguards_reviewed": true, "risk_analysis_required": true, "minimum_necessary_required": true},
+    "aws_well_architected": {"version": "2026-07-training-snapshot", "security_pillar_review_required": true, "ai_lens_review_required": true}
+  },
+  "control_records": {
+    "unique_control_ids": true,
+    "implementation_status_required": true,
+    "owner_and_approver_required": true,
+    "test_procedure_and_frequency_required": true,
+    "evidence_locator_and_digest_required": true,
+    "source_commit_model_policy_and_config_bound": true,
+    "exceptions_have_owner_expiry_and_compensating_controls": true,
+    "expired_or_unapproved_exceptions_block_release": true,
+    "records": [
+      {"control_id":"NS-00","chapter":0,"requirement":"Approved non-production scope","implementation":"Fail-closed preflight","test":"tests/test_preflight.py","owner":"Platform Security","independent_approver":"AI Security","evidence_sha256":"sha256:0000000000000000000000000000000000000000000000000000000000000000","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["NIST-GOVERN","HIPAA-RISK-ANALYSIS"]},
+      {"control_id":"NS-01","chapter":1,"requirement":"Current threat model","implementation":"Owned STRIDE threats","test":"tests/test_threat_model.py","owner":"Application Security","independent_approver":"AI Security","evidence_sha256":"sha256:1111111111111111111111111111111111111111111111111111111111111111","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["NIST-MAP","MITRE-ATLAS"]},
+      {"control_id":"NS-02","chapter":2,"requirement":"Private network path","implementation":"Separated VPC trust zones","test":"tests/test_network.py","owner":"Cloud Security","independent_approver":"Network Security","evidence_sha256":"sha256:2222222222222222222222222222222222222222222222222222222222222222","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["AWS-SECURITY-PILLAR","HIPAA-TECHNICAL"]},
+      {"control_id":"NS-03","chapter":3,"requirement":"Approved model only","implementation":"Exact model and Region allowlist","test":"tests/test_model_governance.py","owner":"AI Platform","independent_approver":"AI Security","evidence_sha256":"sha256:3333333333333333333333333333333333333333333333333333333333333333","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["NIST-MEASURE","OWASP-AGENTIC"]},
+      {"control_id":"NS-04","chapter":4,"requirement":"Separate temporary identities","implementation":"Least-privilege workload roles","test":"tests/test_identity_security.py","owner":"IAM Team","independent_approver":"Cloud Security","evidence_sha256":"sha256:4444444444444444444444444444444444444444444444444444444444444444","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["AWS-SECURITY-PILLAR","HIPAA-ACCESS-CONTROL"]},
+      {"control_id":"NS-05","chapter":5,"requirement":"Runtime authorization","implementation":"PRE_INPUT PRE_TOOL PRE_OUTPUT gates","test":"tests/test_runtime_policy.py","owner":"Application Security","independent_approver":"AI Security","evidence_sha256":"sha256:5555555555555555555555555555555555555555555555555555555555555555","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["OWASP-AGENTIC","NIST-MANAGE"]},
+      {"control_id":"NS-06","chapter":6,"requirement":"Tenant-safe retrieval","implementation":"Server-derived scope and chunk inspection","test":"tests/test_secure_rag.py","owner":"Data Platform","independent_approver":"Privacy","evidence_sha256":"sha256:6666666666666666666666666666666666666666666666666666666666666666","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["OWASP-AGENTIC","HIPAA-MINIMUM-NECESSARY"]},
+      {"control_id":"NS-07","chapter":7,"requirement":"Isolated tool execution","implementation":"Signed work orders and disposable worker","test":"tests/test_tool_execution.py","owner":"Developer Platform","independent_approver":"Application Security","evidence_sha256":"sha256:7777777777777777777777777777777777777777777777777777777777777777","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["OWASP-AGENTIC","MITRE-ATLAS"]},
+      {"control_id":"NS-08","chapter":8,"requirement":"Independent release gate","implementation":"Signed same-digest promotion","test":"tests/test_release_governance.py","owner":"Release Engineering","independent_approver":"Software Supply Chain Security","evidence_sha256":"sha256:8888888888888888888888888888888888888888888888888888888888888888","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["NIST-MANAGE","AWS-SECURITY-PILLAR"]},
+      {"control_id":"NS-09","chapter":9,"requirement":"Privacy-safe observability","implementation":"Body-free correlated security events","test":"tests/test_observability.py","owner":"Detection Engineering","independent_approver":"Privacy","evidence_sha256":"sha256:9999999999999999999999999999999999999999999999999999999999999999","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["MITRE-ATLAS","HIPAA-AUDIT-CONTROLS"]},
+      {"control_id":"NS-10","chapter":10,"requirement":"Adversarial evaluation","implementation":"Isolated synthetic security evaluations","test":"tests/test_security_evaluations.py","owner":"AI Red Team","independent_approver":"AI Security","evidence_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["NIST-MEASURE","MITRE-ATLAS"]},
+      {"control_id":"NS-11","chapter":11,"requirement":"Containment and recovery","implementation":"Kill switch revocation and clean recovery","test":"tests/test_incident_response.py","owner":"Incident Response","independent_approver":"Business Continuity","evidence_sha256":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["NIST-MANAGE","HIPAA-CONTINGENCY"]},
+      {"control_id":"NS-12","chapter":12,"requirement":"Bounded multi-agent delegation","implementation":"Authenticated attenuated handoffs","test":"tests/test_multi_agent_security.py","owner":"AI Platform","independent_approver":"AI Security","evidence_sha256":"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","source_commit":"00ccafc","status":"SYNTHETIC_TRAINING_ONLY","framework_refs":["OWASP-AGENTIC","MITRE-ATLAS"]}
+    ]
+  },
+  "evidence": {
+    "machine_verifiable_preferred": true,
+    "tamper_evident_and_content_addressed": true,
+    "collection_identity_and_timestamp_required": true,
+    "chain_of_custody_required": true,
+    "retention_and_disposal_policy_required": true,
+    "independent_security_account_required": true,
+    "raw_prompts_code_phi_pii_secrets_or_tokens_prohibited": true,
+    "screenshots_alone_sufficient": false,
+    "self_attestation_alone_sufficient": false
+  },
+  "assurance": {
+    "design_review_required": true,
+    "automated_tests_required": true,
+    "live_nonproduction_validation_required": true,
+    "adversarial_testing_required": true,
+    "incident_recovery_drill_required": true,
+    "independent_assessor_required": true,
+    "open_critical_findings_allowed": false,
+    "open_high_findings_require_approved_time_bound_plan": true,
+    "sampling_scope_and_limitations_recorded": true
+  },
+  "production_gate": {
+    "inventory_and_data_flow_current": true,
+    "threat_model_current": true,
+    "privacy_and_legal_review_required": true,
+    "model_and_vendor_due_diligence_required": true,
+    "identity_network_rag_tool_release_monitoring_ir_controls_verified": true,
+    "backup_rollback_kill_switch_and_support_ready": true,
+    "slo_capacity_cost_and_abuse_limits_verified": true,
+    "runbooks_training_and_oncall_required": true,
+    "change_ticket_and_two_independent_approvals_required": true,
+    "residual_risk_acceptance_by_accountable_executive_required": true,
+    "agent_cannot_approve_waive_or_accept_risk": true,
+    "fail_closed_on_missing_stale_or_conflicting_evidence": true
+  },
+  "continuous_compliance": {
+    "control_drift_detection_required": true,
+    "evidence_freshness_max_days": 90,
+    "material_change_triggers_reassessment": true,
+    "model_policy_tool_data_dependency_or_architecture_change_material": true,
+    "continuous_monitoring_and_periodic_access_review_required": true,
+    "annual_risk_analysis_is_maximum_not_only_cadence": true
+  },
+  "safe_failures": [
+    {"id":"missing_evidence","class":"missing_evidence","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"stale_evidence","class":"stale_evidence","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"forged_digest","class":"forged_evidence","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"self_approval","class":"self_approval","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"expired_exception","class":"expired_exception","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"open_critical","class":"critical_finding","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"unmapped_control","class":"unmapped_control","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"wrong_commit","class":"scope_substitution","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"missing_live_test","class":"paper_compliance","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"sensitive_evidence","class":"sensitive_evidence","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"material_drift","class":"material_drift","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"agent_risk_acceptance","class":"agent_risk_acceptance","expected":"BLOCK","aws_calls":0,"side_effects":0}
+  ],
+  "review_and_evidence": {"owner":"AI Security","accountable_executive":"CISO","independent_approval_required":true,"legal_privacy_review_required":true,"review_expires":"2026-10-20","evidence_contains_sensitive_values":false},
+  "limitations": [
+    "Offline validation does not invoke AWS or Bedrock.",
+    "It does not audit a live AWS account or organization.",
+    "It does not test production workloads or patient data.",
+    "It does not establish HIPAA compliance or certification.",
+    "Framework mapping does not prove control effectiveness.",
+    "CloudFormation is a disabled reference skeleton.",
+    "Independent legal, privacy, risk, and technical review remains required."
+  ]
+}
