@@ -1,0 +1,24 @@
+# Chapter 14 Evidence Checklist
+
+- [ ] Source is clean and pinned to reviewed commit `ce849d8`
+- [ ] Chapters 0–13 tests pass without exclusions
+- [ ] Non-production account and Region are independently allowlisted
+- [ ] Synthetic data and approved repository fixtures are confirmed
+- [ ] Change ticket, change set, budget, quotas, rollback, and teardown reviewed
+- [ ] Two independent deployment approvals recorded
+- [ ] Every approval is current and bound to the exact account, Region, commit, artifact digest, and change ticket
+- [ ] Short-lived human deployment session recorded and revoked
+- [ ] Model, policy, tool, image, dependency, manifest, and artifact digests captured
+- [ ] Kill switch succeeds before attack exercises
+- [ ] Twelve expected attack outcomes are bound before execution
+- [ ] Actual results and content-addressed evidence are captured
+- [ ] Every phase and attack has a fresh, unique SHA-256 evidence digest
+- [ ] No prompt, code, PHI, PII, secret, token, or tool body appears in evidence
+- [ ] Incident containment and clean recovery drill passes
+- [ ] CloudTrail integrity and immutable evidence retention verified
+- [ ] Temporary grants, sessions, jobs, work orders, and queues invalidated
+- [ ] Ephemeral resources removed and inventory reconciled
+- [ ] Orphan-resource and post-capstone cost checks pass
+- [ ] Critical findings are closed before capstone completion
+- [ ] Security, privacy, and business reviewers are independent
+- [ ] Final report states limitations and makes no production/compliance claim

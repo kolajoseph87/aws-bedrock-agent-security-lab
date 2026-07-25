@@ -1,0 +1,136 @@
+{
+  "chapter": 14,
+  "environment": "controlled-non-production",
+  "baseline": {
+    "source_commit": "ce849d8",
+    "published_test_count": 685,
+    "chapters_required": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    "all_inherited_tests_required": true,
+    "signed_same_digest_artifacts_required": true,
+    "no_unreviewed_local_changes": true
+  },
+  "scope": {
+    "fictional_organization": "Northstar Health Systems",
+    "approved_account_ids": ["111122223333"],
+    "approved_regions": ["us-east-1"],
+    "approved_account_allowlist_required": true,
+    "production_accounts_prohibited": true,
+    "approved_regions_only": true,
+    "synthetic_data_only": true,
+    "phi_pii_secrets_and_production_code_prohibited": true,
+    "public_access_prohibited": true,
+    "internet_egress_default_deny": true
+  },
+  "authorization": {
+    "deployment_disabled_by_default": true,
+    "reviewed_change_set_required": true,
+    "change_ticket_required": true,
+    "two_independent_approvals_required": true,
+    "short_lived_human_session_required": true,
+    "agent_cannot_deploy_approve_waive_or_accept_risk": true,
+    "account_region_commit_manifest_and_digest_binding_required": true
+    ,
+    "example_binding": {
+      "account_id": "111122223333",
+      "region": "us-east-1",
+      "source_commit": "ce849d8",
+      "artifact_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000384",
+      "change_ticket": "CHG-SYNTHETIC-14",
+      "session_ttl_minutes": 60,
+      "production_account": false,
+      "synthetic_data_only": true
+    },
+    "approvals_bound_to_example": true,
+    "approval_freshness_max_days": 7
+  },
+  "execution": {
+    "ordered_phases": ["preflight", "deploy", "functional-smoke", "attack-exercises", "incident-drill", "recovery", "evidence-freeze", "teardown", "assessment"],
+    "stop_on_first_critical_failure": true,
+    "kill_switch_tested_before_attacks": true,
+    "side_effects_intercepted_unless_explicitly_approved": true,
+    "budgets_quotas_timeouts_and_concurrency_limits_required": true,
+    "rollback_target_and_teardown_plan_required": true,
+    "resource_inventory_and_owner_tags_required": true
+  },
+  "attack_exercises": {
+    "synthetic_and_harmless_only": true,
+    "production_targets_prohibited": true,
+    "classes_required": [
+      "direct_prompt_injection",
+      "indirect_rag_injection",
+      "cross_tenant_retrieval",
+      "tool_argument_manipulation",
+      "work_order_replay",
+      "agent_message_forgery",
+      "privilege_laundering",
+      "sensitive_output",
+      "release_digest_substitution",
+      "telemetry_tampering",
+      "kill_switch",
+      "recovery_regression"
+    ],
+    "critical_control_failure_blocks_completion": true,
+    "expected_result_bound_before_execution": true,
+    "actual_result_and_evidence_digest_required": true
+  },
+  "evidence": {
+    "independent_security_account_required": true,
+    "content_addressed_and_timestamped": true,
+    "source_model_policy_tool_artifact_and_config_versions_required": true,
+    "chain_of_custody_required": true,
+    "cloudtrail_integrity_validation_required": true,
+    "object_lock_compliance_mode_required": true,
+    "minimum_retention_days": 400,
+    "raw_prompts_code_phi_pii_secrets_tokens_and_tool_bodies_prohibited": true,
+    "generated_evidence_excluded_from_git": true
+  },
+  "assessment": {
+    "technical_findings_required": true,
+    "control_effectiveness_and_limitations_required": true,
+    "residual_risk_and_remediation_owners_required": true,
+    "executive_summary_required": true,
+    "independent_security_privacy_and_business_review_required": true,
+    "open_critical_findings_allowed": false,
+    "production_authorization_claimed": false,
+    "compliance_certification_claimed": false,
+    "maximum_outcome": "CONTROLLED_NONPRODUCTION_CAPSTONE_VALIDATED"
+  },
+  "teardown": {
+    "inventory_reconciled_before_and_after": true,
+    "temporary_access_and_grants_revoked": true,
+    "queues_jobs_sessions_and_work_orders_invalidated": true,
+    "ephemeral_resources_destroyed": true,
+    "retained_evidence_explicitly_allowlisted": true,
+    "orphan_resource_and_cost_checks_required": true,
+    "teardown_failure_blocks_completion": true
+  },
+  "safe_failures": [
+    {"id":"wrong_account","class":"scope_substitution","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"dirty_source","class":"source_substitution","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"agent_deploy","class":"agent_authority","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"missing_approval","class":"missing_approval","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"real_phi","class":"sensitive_data","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"forged_evidence","class":"evidence_tampering","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"unexpected_attack_result","class":"critical_regression","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"telemetry_gap","class":"telemetry_failure","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"kill_switch_failure","class":"containment_failure","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"recovery_failure","class":"recovery_failure","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"orphan_resource","class":"teardown_failure","expected":"BLOCK","aws_calls":0,"side_effects":0},
+    {"id":"production_claim","class":"assurance_overclaim","expected":"BLOCK","aws_calls":0,"side_effects":0}
+  ],
+  "review": {
+    "owner": "AI Security",
+    "independent_assessor": "Enterprise Security Assurance",
+    "review_expires": "2026-10-20",
+    "evidence_contains_sensitive_values": false
+  },
+  "limitations": [
+    "Offline validation does not deploy or invoke AWS or Bedrock.",
+    "The reference template creates no resources by default.",
+    "Synthetic attack contracts do not prove live control effectiveness.",
+    "A controlled capstone result is not production authorization.",
+    "A controlled capstone result is not HIPAA compliance or certification.",
+    "Independent live testing, legal review, privacy review, and risk acceptance remain required.",
+    "AWS costs and service quotas must be reviewed before any enabled deployment."
+  ]
+}

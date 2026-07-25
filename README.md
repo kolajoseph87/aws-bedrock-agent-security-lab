@@ -18,6 +18,7 @@ This cumulative lab teaches how Northstar Health Systems can build a secure codi
 - Chapter 11 — Independent kill switch, revocation, quarantine, forensic preservation, verified recovery, and incident exercises
 - Chapter 12 — Separate agent identities, authenticated handoffs, bounded delegation, confused-deputy protection, and cascading-compromise containment
 - Chapter 13 — Framework mapping, traceable control evidence, independent assurance, and fail-closed production-readiness gates
+- Chapter 14 — Controlled capstone execution, end-to-end attack validation, evidence collection, teardown, and final assessment
 
 ## Scenario
 
@@ -128,6 +129,15 @@ python3 -m unittest discover -s tests -v
 
 ```bash
 python3 scripts/validate_compliance_assurance.py --manifest compliance-assurance/compliance-assurance.aws.json --evidence evidence/lab-13-validation.json
+python3 -m unittest discover -s tests -v
+```
+
+## Run Chapter 14
+
+```bash
+python3 scripts/validate_capstone.py \
+  --manifest capstone/capstone.aws.json \
+  --evidence evidence/lab-14-validation.json
 python3 -m unittest discover -s tests -v
 ```
 
