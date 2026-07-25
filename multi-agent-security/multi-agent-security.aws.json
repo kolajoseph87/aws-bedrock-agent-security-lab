@@ -1,0 +1,123 @@
+{
+  "chapter": 12,
+  "environment": "non-production",
+  "architecture": {
+    "agents": ["planner", "retriever", "policy", "patch-worker", "reviewer", "release-controller"],
+    "unique_workload_identity_per_agent": true,
+    "shared_agent_credentials_allowed": false,
+    "orchestrator_is_policy_enforcement_point": true,
+    "peer_to_peer_bypass_allowed": false,
+    "human_is_required_for_irreversible_actions": true,
+    "separate_signing_key_per_agent_required": true,
+    "approved_sender_receiver_paths_required": true
+  },
+  "messages": {
+    "strict_schema_required": true,
+    "sender_and_receiver_identity_required": true,
+    "mutual_authentication_required": true,
+    "signature_required": true,
+    "encryption_in_transit_required": true,
+    "issued_at_and_expiry_required": true,
+    "maximum_ttl_seconds": 300,
+    "single_use_nonce_required": true,
+    "correlation_and_parent_ids_required": true,
+    "tenant_repository_and_task_scope_required": true,
+    "payload_digest_required": true,
+    "payload_digest_recalculation_required": true,
+    "receiver_operation_mapping_required": true,
+    "unknown_fields_denied": true,
+    "prompt_claimed_identity_trusted": false
+  },
+  "delegation": {
+    "explicit_capability_required": true,
+    "capability_is_signed_and_single_use": true,
+    "cannot_delegate_more_authority_than_held": true,
+    "maximum_depth": 3,
+    "cycle_detection_required": true,
+    "maximum_fanout": 4,
+    "maximum_total_handoffs": 12,
+    "expiry_cannot_exceed_parent": true,
+    "scope_cannot_expand": true,
+    "audience_binding_required": true,
+    "operation_and_resource_binding_required": true,
+    "delegator_remains_accountable": true,
+    "revocation_checked_each_hop": true,
+    "parent_signature_verified_required": true,
+    "child_sender_must_equal_parent_receiver": true,
+    "message_nonce_and_capability_revocation_required": true
+  },
+  "authorization": {
+    "authorize_every_hop": true,
+    "server_derived_identity_and_scope": true,
+    "receiver_reauthorizes_locally": true,
+    "deny_by_default": true,
+    "fail_closed_if_policy_or_identity_unavailable": true,
+    "confused_deputy_context_binding_required": true,
+    "separation_of_duties_required": true,
+    "self_approval_prohibited": true,
+    "agent_merge_release_or_deploy_prohibited": true,
+    "cross_tenant_or_repository_access_prohibited": true
+  },
+  "context": {
+    "minimum_necessary_fields_only": true,
+    "raw_prompts_code_chunks_or_tool_arguments_forwarded": false,
+    "phi_pii_credentials_secrets_or_tokens_forwarded": false,
+    "retrieved_content_is_untrusted_data": true,
+    "provenance_and_content_hash_required": true,
+    "context_labels_preserved_at_every_hop": true,
+    "memory_isolated_by_tenant_repository_and_agent": true,
+    "recipient_specific_redaction_required": true
+  },
+  "containment": {
+    "per_agent_rate_and_cost_limits": true,
+    "per_workflow_time_and_handoff_limits": true,
+    "tool_allowlist_per_agent": true,
+    "network_egress_allowlist_per_agent": true,
+    "blast_radius_isolated_per_agent": true,
+    "compromised_agent_quarantine_required": true,
+    "kill_switch_and_revocation_integrated": true,
+    "downstream_authority_revoked_on_compromise": true,
+    "partial_failure_cannot_fall_back_to_broader_agent": true
+  },
+  "observability": {
+    "every_handoff_audited": true,
+    "decision_and_reason_code_required": true,
+    "identity_scope_capability_and_versions_logged": true,
+    "message_body_logging_prohibited": true,
+    "tamper_evident_correlation_required": true,
+    "delegation_anomaly_detection_required": true,
+    "cross_scope_attempt_detection_required": true,
+    "loop_and_fanout_detection_required": true
+  },
+  "safe_attacks": [
+    {"id":"MA-01","class":"forged_sender","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-02","class":"message_replay","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-03","class":"confused_deputy","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-04","class":"privilege_laundering","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-05","class":"delegation_cycle","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-06","class":"excessive_fanout","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-07","class":"cross_tenant_context","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-08","class":"cross_repository_context","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-09","class":"untrusted_content_instruction","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-10","class":"self_approval","aws_calls":0,"side_effects":0,"expected":"DENY"},
+    {"id":"MA-11","class":"cascading_compromise","aws_calls":0,"side_effects":0,"expected":"QUARANTINE"},
+    {"id":"MA-12","class":"telemetry_suppression","aws_calls":0,"side_effects":0,"expected":"DENY"}
+  ],
+  "review_and_evidence": {
+    "owner": "Northstar AI Security",
+    "review_expires": "2026-10-20",
+    "independent_approval_required": true,
+    "negative_tests_required": true,
+    "live_nonproduction_handoff_tests_required": true,
+    "evidence_contains_sensitive_values": false
+  },
+  "limitations": [
+    "Offline validation does not invoke AWS or Amazon Bedrock.",
+    "It does not create or run multiple agents.",
+    "It does not send an agent message.",
+    "It does not assume an IAM role or validate live identity propagation.",
+    "It does not prove network isolation or revocation propagation.",
+    "It does not perform repository, release, or deployment actions.",
+    "It does not prove HIPAA compliance."
+  ]
+}

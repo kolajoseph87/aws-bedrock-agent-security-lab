@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Guarded Chapter 12 multi-agent security reference; disabled by default.
+Parameters:
+  DeployChapter12MultiAgentSecurity:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+Conditions:
+  Deploy: !Equals [!Ref DeployChapter12MultiAgentSecurity, 'true']
+Resources:
+  HandoffDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Condition: Deploy
+    Properties:
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      KmsMasterKeyId: alias/aws/sqs
+      MessageRetentionPeriod: 1209600
+  HandoffQueue:
+    Type: AWS::SQS::Queue
+    Condition: Deploy
+    Properties:
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      KmsMasterKeyId: alias/aws/sqs
+      MessageRetentionPeriod: 900
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt HandoffDeadLetterQueue.Arn
+        maxReceiveCount: 1
+  PlannerRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: PlannerSendOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt HandoffQueue.Arn
+  RetrieverRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: RetrieverSendOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt HandoffQueue.Arn
+  PolicyRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: PolicySendOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt HandoffQueue.Arn
+  PatchWorkerRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: PatchWorkerSendOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt HandoffQueue.Arn
+  ReviewerRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: ReviewerSendOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt HandoffQueue.Arn
+  ReleaseControllerRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: ReleaseControllerSendOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt HandoffQueue.Arn
+              - Effect: Deny
+                Action:
+                  - codecommit:GitPush
+                  - codepipeline:StartPipelineExecution
+                Resource: '*'
+  OrchestratorRole:
+    Type: AWS::IAM::Role
+    Condition: Deploy
+    Properties:
+      MaxSessionDuration: 900
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref AWS::AccountId}
+      Policies:
+        - PolicyName: OrchestratorReceiveOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt HandoffQueue.Arn
+  HandoffQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Condition: Deploy
+    Properties:
+      Queues: [!Ref HandoffQueue]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: sqs:*
+            Resource: !GetAtt HandoffQueue.Arn
+            Condition:
+              Bool: {aws:SecureTransport: 'false'}
+Outputs:
+  DeploymentEnabled: {Value: !Ref DeployChapter12MultiAgentSecurity}
+  SecurityBoundary:
+    Value: No direct agent-to-agent IAM trust; the orchestrator must authenticate and authorize every handoff.
+  LiveEnforcementRequired:
+    Value: This skeleton does not implement message signing, capability issuance, receiver authorization, agent runtimes, or live revocation.
